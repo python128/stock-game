@@ -31,6 +31,7 @@ A prompt as such will appear.
 You can now type in some commands.
 
 Here are the commands.
+```
 - "fs <stock>": Find rate of specified stock.
 - "bal": Gives your balance.
 - "port": Shows your portfolio.
@@ -42,6 +43,7 @@ Here are the commands.
 - "help": Shows this help message.
 - "exit": Exits the game cleanly; ^C(ctrl+c) also works.
 - "quit": Same as 'exit'
+```
   
 You can get more info by typing `help`.
 To exit, type either `exit` or `quit`. You can also press <kbd>Ctrl+C</kbd>
