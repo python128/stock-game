@@ -1,6 +1,9 @@
 # `stock-game`
 A simple simulation of a stock market without investing real money.
 
+![Video for game](./stock_game.gif)
+
+  
 ## Installation
 - Clone the github repo(`git clone https://github.com/python128/stock-game.git`)
 - In your terminal, run: 
