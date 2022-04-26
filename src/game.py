@@ -104,17 +104,23 @@ def comp(stock):
 ###########################################
 # Function to get data of stock
 def get_data(stock):
-    n = NSELive()
-    q = n.stock_quote(stock.upper())
-    data = q['priceInfo']['lastPrice']
-    return "{} => {}".format(stock, data)
+    try:
+        n = NSELive()
+        q = n.stock_quote(stock.upper())
+        data = q['priceInfo']['lastPrice']
+        return "{} => {}".format(stock, data)
+    except:
+        return False
         
 # Function to return only the rate
 def get_rate(stock):
-    n = NSELive()
-    q = n.stock_quote(stock.upper())
-    data = q['priceInfo']['lastPrice']
-    return data
+    try:
+        n = NSELive()
+        q = n.stock_quote(stock.upper())
+        data = q['priceInfo']['lastPrice']
+        return data
+    except:
+        return 0
         
 ###########################################
 ###        Buying/Selling shares        ###
@@ -292,7 +298,7 @@ def game():
         print("\x1b[6D" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
         sys.exit(0)
     else:
-        return ""
+        return "\033[F"
     
     
 if __name__ == "__main__":
