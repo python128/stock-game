@@ -15,6 +15,16 @@ A simple simulation of a stock market without investing real money.
 - This will install all the required dependancies.
 Now you are ready to start!
 
+<details> <summary> More Data </summary>
+  
+  #### Modules Used
+  - BeautifulSoup4
+  - colorama
+  - jugaad_data
+  - pandas
+  - tabulate
+</details>
+
 ## The Game
 This game is fairy straightforward.
 
