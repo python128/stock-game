@@ -90,14 +90,9 @@ def comp(stock):
             shares = val['shares']
         stocks.append(val['stock'])
     
-    # table = []
-    # headers = ["Old Rate", "Current Rate", "Profit/Loss"] 
     if stock.upper() in stocks:
         newrate = get_rate(stock)
-        # table.append(oldrate); table.append(newrate); table.append(str(float(newrate)-float(oldrate)))
-        # final = dict(zip(headers, table))
-        # return tabulate(final, headers="keys", tablefmt="fancy_grid")
-        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: {}".format(stock.upper(), oldrate, newrate, newrate-oldrate)
+        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: {}\nNum. of Shares: {}\nTotal profit/loss: {}".format(stock.upper(), oldrate, newrate, newrate-oldrate, shares, newrate*shares-oldrate*shares)
     
 ###########################################
 ### Info from Internet(Google Finanace) ###
