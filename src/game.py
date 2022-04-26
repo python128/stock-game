@@ -92,7 +92,7 @@ def comp(stock):
     
     if stock.upper() in stocks:
         newrate = get_rate(stock)
-        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: {}\nNum. of Shares: {}\nTotal profit/loss: {}".format(stock.upper(), oldrate, newrate, newrate-oldrate, shares, newrate*shares-oldrate*shares)
+        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: ⏣ {}\nNum. of Shares: {}\nTotal profit/loss: ⏣ {}".format(stock.upper(), oldrate, newrate, newrate-oldrate, shares, newrate*shares-oldrate*shares)
     
 ###########################################
 ### Info from Internet(Google Finanace) ###
@@ -103,7 +103,7 @@ def get_data(stock):
         n = NSELive()
         q = n.stock_quote(stock.upper())
         data = q['priceInfo']['lastPrice']
-        return "{} => {}".format(stock, data)
+        return "{} => ⏣ {}".format(stock, data)
     except:
         return False
         
@@ -159,7 +159,7 @@ def buy_shares(cash, stock, num):
         else:
             return ">> Alright, not buying it"
     else:
-        return ">> You need more money to buy {} shares of {} stock.".format(int(num), stock)
+        return ">> You need (⏣ {}) more money to buy {} shares of {} stock.".format(num*rate-cash, int(num), stock)
         
 # Function to sell shares
 def sell_shares(cash, stock, num):
@@ -191,7 +191,15 @@ def sell_shares(cash, stock, num):
             write_ports(new_list)
             update_cash(cash)
             log("{},{},{},{},{},{}".format(get_time(),"Sell", stock, int(share_num), rate, share_num*rate))
-            return "Sold {} share(s) of {} stock for ⏣ {}.\nYou gained ⏣ {}".format(int(share_num), stock, share_num*rate, (rate-oldrate)*share_num)
+            if (rate-oldrate)*share_num > 0:
+                pl = "gained" # Profit/Loss
+            elif (rate-oldrate)*share_num < 0:
+                pl = "lost"
+            elif (rate-oldrate)*share_num == 0:
+                pl = "lost/gained"
+            else:
+                pl = ""
+            return "Sold {} share(s) of {} stock for ⏣ {}.\nYou {} ⏣ {}".format(int(share_num), stock, share_num*rate, pl, (rate-oldrate)*share_num)
         else:
             return "Ok, keeping it."
     elif stock not in stocks:
