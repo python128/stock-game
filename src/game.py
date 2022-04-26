@@ -1,7 +1,7 @@
 # This is a game about stock prices.
 
 # Imports
-import requests as r # To get data
+from jugaad_data.nse import NSELive # To get data
 from colorama import Fore, init
 from bs4 import BeautifulSoup as bs # To parse data
 import csv # Some help with csv formats
@@ -14,14 +14,9 @@ init(autoreset=True)
 ##########################################
 ###  Time - Log Messages - Bank Loans  ###
 ##########################################
-# Function to get time for logs
+# Function to get time for portfolio
 def get_time():
     return str(dt.now().strftime("%d/%m/%Y %H:%M:%S"))
-    
-# Returns the market name
-def get_market():
-    with open("market.txt", "r") as file:
-        return file.read()
     
 # Logs actions
 def log(msg):
@@ -108,31 +103,18 @@ def comp(stock):
 ### Info from Internet(Google Finanace) ###
 ###########################################
 # Function to get data of stock
-def get_data(stock_item):
-    URL = "https://www.google.com/finance/quote/{}:{}".format(stock_item, get_market())
-    page = r.get(URL)
-    
-    soup = bs(page.content, "html.parser")
-    
-    value = soup.find("div", class_="YMlKec fxKbKc")
-    try:
-        if stock_item != None: return "{} => {}".format(stock_item.upper(), value.text) 
-        else: return False
-    except AttributeError:
-        return False
+def get_data(stock):
+    n = NSELive()
+    q = n.stock_quote(stock.upper())
+    data = q['priceInfo']['lastPrice']
+    return "{} => {}".format(stock, data)
         
 # Function to return only the rate
-def get_rate(stock_item):
-    URL = "https://www.google.com/finance/quote/{}:{}".format(stock_item, get_market())
-    page = r.get(URL)
-    
-    soup = bs(page.content, "html.parser")
-    
-    value = soup.find("div", class_="YMlKec fxKbKc")
-    try:
-        return float(value.text.strip("₹").replace(",", ""))
-    except AttributeError:
-        return 0
+def get_rate(stock):
+    n = NSELive()
+    q = n.stock_quote(stock.upper())
+    data = q['priceInfo']['lastPrice']
+    return data
         
 ###########################################
 ###        Buying/Selling shares        ###
@@ -163,6 +145,7 @@ def buy_shares(cash, stock, num):
             if stock in stocks:
                 data[idx]['shares'] += num
                 data[idx]['rate'] = (data[idx]['rate'] + rate) / 2
+                data[idx]['amt'] += data[idx]['rate'] * data[idx]['shares']
                 new_list.append(data[idx])
             elif stock not in stocks:
                 new_dict = {"stock":stock, "rate":rate, "shares":int(num), "amt":rate*num}
