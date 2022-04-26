@@ -28,6 +28,9 @@ Now you are ready to start!
 ## The Game
 This game is fairy straightforward.
 
+> FYI, this works with only NSE of India due to `Jugaad_data`.
+> I use it since it is obviously faster. (2.3s[before] vs 0.01s[after])
+
 Run `python game.py` OR `python3 game.py` in the `src/` folder.
 A prompt as such will appear.
 ```
