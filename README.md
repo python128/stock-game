@@ -15,14 +15,6 @@ A simple simulation of a stock market without investing real money.
 - This will install all the required dependancies.
 Now you are ready to start!
 
-## Configuration
-For this game, only a little configuration is required. 
-- Open `src/market.txt` in your preferred editor.
-- Add the stock exchange name. Eg: NYSE(US) or NSE(India)
-- Don't type anything else in the file, else an error will occur.
-- It can be in capital or small letters.
-That's it! 
-
 ## The Game
 This game is fairy straightforward.
 
@@ -52,4 +44,4 @@ You can get more info by typing `help`.
 To exit, type either `exit` or `quit`. You can also press <kbd>Ctrl+C</kbd>
 
   
-Data is collected from google finance with requests.
+Data is collected from [jugaad_data](https://github.com/jugaad-py/jugaad-data).
