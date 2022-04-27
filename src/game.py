@@ -8,6 +8,7 @@ import csv # Some help with csv formats
 import pandas as pd # Some more help with csv
 from tabulate import tabulate # To tabulate data(portfolio & logs)
 from datetime import datetime as dt # For log msgs
+import datetime
 import sys # To exit
 
 init(autoreset=True)
@@ -20,10 +21,13 @@ def get_time():
     
 def calc_se():
     day = str(dt.today().strftime("%A"))
-    hour = dt.now().hour
-    
+    x = dt.now().time()
+    time = datetime.timedelta(hours=x.hour, minutes=x.minute)
+    start = datetime.timedelta(hours=9, minutes=15)
+    end = datetime.timedelta(hours=15, minutes=30)
+        
     if day != "Saturday" or day != "Sunday":
-        if hour > 9 and hour < 15:
+        if start < time < end:
             return True
         else:
             return False
