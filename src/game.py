@@ -18,6 +18,18 @@ init(autoreset=True)
 def get_time():
     return str(dt.now().strftime("%d/%m/%Y %H:%M:%S"))
     
+def calc_se():
+    day = str(dt.today().strftime("%A"))
+    hour = dt.now().hour
+    
+    if day != "Saturday" or day != "Sunday":
+        if hour > 9 and hour < 15:
+            return True
+        else:
+            return False
+    else:
+        return False
+    
 # Logs actions
 def log(msg):
     with open("log.txt", "a") as logfile:
@@ -45,7 +57,7 @@ As an added bonus, you don't need to pay this ⏣ 5000 back to us!"
         return msg
         
     elif cash > 0 and ports == []:
-        return "You have some cash! Invest them in promising stocks to earn some money.⏣ "
+        return "You have some cash! Invest them in promising stocks to earn some money ⏣ ."
         
     else:
         return "You don't require a loan right now!"
@@ -62,6 +74,7 @@ def help_msg():
          - "loan": Gets you your first loan of ⏣ 5000 with no interest and no back pay.
          - "log": Shows your logs, i.e. what all you bought/sold, at which time, at which rate, etc.
          - "comp <stock>": Compares your stock with the real time market. Shows your losses or gains.
+         - "comp --port": Compares your entire portfolio with current rates.
          - "help": Shows this help message.
          - "exit": Exits the game cleanly; ^C also works.
          - "quit": Same as 'exit'
@@ -92,7 +105,9 @@ def comp(stock):
     
     if stock.upper() in stocks:
         newrate = get_rate(stock)
-        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: ⏣ {}\nNum. of Shares: {}\nTotal profit/loss: ⏣ {}".format(stock.upper(), oldrate, newrate, newrate-oldrate, shares, newrate*shares-oldrate*shares)
+        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: ⏣ {}\nNum. of Shares: {}\nTotal profit/loss: ⏣ {}".format(Fore.GREEN + stock.upper() + Fore.RESET, oldrate, newrate, newrate-oldrate, shares, newrate*shares-oldrate*shares)
+    else:
+        return f"You don't own {stock.upper()} stock."
     
 ###########################################
 ### Info from Internet(Google Finanace) ###
@@ -154,7 +169,7 @@ def buy_shares(cash, stock, num):
             cash -= rate*num
             update_cash(cash)
             write_ports(new_list)
-            log("{},{},{},{},{},{}".format(get_time(),"Buy", stock, int(num), rate, num*rate))
+            log("{},{},{},{},⏣ {},⏣ {},⏣ {}".format(get_time(),"Buy", stock, int(num), rate, num*rate, cash))
             return ">> Bought {} shares of {} stock for ⏣ {} \nYou have ⏣ {} remaining.".format(int(num), stock, rate*num, cash)
         else:
             return ">> Alright, not buying it"
@@ -190,11 +205,11 @@ def sell_shares(cash, stock, num):
             cash += rate*int(share_num)
             write_ports(new_list)
             update_cash(cash)
-            log("{},{},{},{},{},{}".format(get_time(),"Sell", stock, int(share_num), rate, share_num*rate))
+            log("{},{},{},{},⏣ {},⏣ {},⏣ {}".format(get_time(),"Sell", stock, int(share_num), rate, share_num*rate, cash))
             if (rate-oldrate)*share_num > 0:
-                pl = "gained" # Profit/Loss
+                pl = Fore.GREEN + "gained" # Profit/Loss
             elif (rate-oldrate)*share_num < 0:
-                pl = "lost"
+                pl = Fore.RED + "lost"
             elif (rate-oldrate)*share_num == 0:
                 pl = "lost/gained"
             else:
@@ -264,13 +279,25 @@ def game():
             return "That stock is not present."
     elif "bal" in cmd:
         return "⏣ " + str(cash)
-    elif "port" in cmd:
-        headers = ["Stock", "Avg Rate", "Shares", "cost"]
+    elif "port" == list(cmd.split(" "))[0]:
+        headers = ["Stock", "Avg Rate", "Shares", "Cost"]
         if port_data() != []:
             table = port_data()
         else:
             return "You have no shares yet! Buy some!"
-        return tabulate(table, headers, tablefmt="fancy_grid")
+        return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
+    elif "comp --port" in cmd:
+        headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "Profit/Loss"]
+        if port_data() != []:
+            table = port_data()
+            ftable = []
+            for val in table:
+                val.append(get_rate(val[0]))
+                val.append(float(val[4]) - float(val[1]))
+                ftable.append(val)
+        else:
+            return "You have no shares yet! Buy some!"
+        return tabulate(ftable, headers, tablefmt="fancy_grid", numalign="right")
     elif "buy" in cmd:
         try: 
             li = list(cmd.split(" "))
@@ -282,12 +309,12 @@ def game():
             return sell_shares(cash, li[1], li[2])
         except IndexError: return "Please provide 2 arguments: sell <stock> <num. of shares>"
     elif "log" in cmd:
-        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price"]
+        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance"]
         if read_log() != []:
             table = read_log()
         else:
             return "There is nothing in your logs! Do some activity, and you can see your logs."
-        return tabulate(table, headers, tablefmt="fancy_grid")
+        return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
     elif "loan" in cmd:
         return loan()
     elif "help" in cmd:
@@ -306,6 +333,12 @@ def game():
     
 if __name__ == "__main__":
     print(Fore.MAGENTA + "Welcome to stock-game! Type `help` for help")
+    if calc_se():
+        print(Fore.GREEN + "Stock market is OPEN.")
+    elif not calc_se():
+        print(Fore.RED + "Stock market is CLOSED.")
+    else:
+        print("\033[F")
     while True:
         try:
             print(game())
