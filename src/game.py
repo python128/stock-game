@@ -112,7 +112,17 @@ def comp(stock):
         return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: ⏣ {}\nNum. of Shares: {}\nTotal profit/loss: ⏣ {}".format(Fore.GREEN + stock.upper() + Fore.RESET, oldrate, newrate, newrate-oldrate, shares, newrate*shares-oldrate*shares)
     else:
         return f"You don't own {stock.upper()} stock."
-    
+        
+def add_color(num):
+    if num < 0:
+        return Fore.RED + f"{num}" + Fore.RESET
+    elif num > 0:
+        return Fore.GREEN + f"{num}" + Fore.RESET
+    elif num == 0:
+        return f"{num}"
+    else:
+        return ""
+        
 ###########################################
 ### Info from Internet(Google Finanace) ###
 ###########################################
@@ -291,17 +301,23 @@ def game():
             return "You have no shares yet! Buy some!"
         return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
     elif "comp --port" in cmd:
-        headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "Profit/Loss"]
+        headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "Profit/Loss(per share)", "Total Profit/Loss"]
         if port_data() != []:
             table = port_data()
             ftable = []
+            adds = []
             for val in table:
                 val.append(get_rate(val[0]))
-                val.append(float(val[4]) - float(val[1]))
+                profs = float(val[4]) - float(val[1])
+                val.append(add_color(profs))
+                totalprof = float(val[2]) * float(profs)
+                val.append(add_color(totalprof))
                 ftable.append(val)
+                adds.append(float(totalprof))
+            pl = add_color(round(sum(adds), 2))
         else:
             return "You have no shares yet! Buy some!"
-        return tabulate(ftable, headers, tablefmt="fancy_grid", numalign="right")
+        return tabulate(ftable, headers, tablefmt="fancy_grid", numalign="right") + f"\nTotal: {pl}"
     elif "buy" in cmd:
         try: 
             li = list(cmd.split(" "))
@@ -329,7 +345,7 @@ def game():
             return comp(li[1])
         except IndexError: return "Please provide 1 argument: comp <stock>"
     elif "exit" in cmd or "quit" in cmd:
-        print("\x1b[6D" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
+        print("\033[F\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
         sys.exit(0)
     else:
         return "\033[F"
@@ -347,5 +363,5 @@ if __name__ == "__main__":
         try:
             print(game())
         except KeyboardInterrupt:
-            print("\x1b[6D" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
+            print("\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
             sys.exit(0)
