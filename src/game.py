@@ -109,7 +109,7 @@ def comp(stock):
     
     if stock.upper() in stocks:
         newrate = get_rate(stock)
-        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: ⏣ {}\nNum. of Shares: {}\nTotal profit/loss: ⏣ {}".format(Fore.GREEN + stock.upper() + Fore.RESET, oldrate, newrate, newrate-oldrate, shares, newrate*shares-oldrate*shares)
+        return "--- {} ---\nOld Rate: {}\nCurrent Rate: {}\nProfit/Loss: ⏣ {}\nNum. of Shares: {}\nTotal profit/loss: ⏣ {}".format(Fore.MAGENTA + stock.upper() + Fore.RESET, oldrate, newrate, add_color(newrate-oldrate), shares, add_color(newrate*shares-oldrate*shares))
     else:
         return f"You don't own {stock.upper()} stock."
         
