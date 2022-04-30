@@ -51,6 +51,7 @@ Here are the commands.
 - "loan": Gets you your first loan of ⏣ 5000 with no interest and no back pay.
 - "log": Shows your logs, i.e. what all you bought/sold, at which time, at which rate, etc.
 - "comp <stock>": Compares your stock with the real time market. Shows your losses or gains.
+- "comp --port": Compares your entire stock with current rates.
 - "help": Shows this help message.
 - "exit": Exits the game cleanly; ^C(ctrl+c) also works.
 - "quit": Same as 'exit'
