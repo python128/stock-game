@@ -26,8 +26,9 @@ def calc_se():
     start = datetime.timedelta(hours=9, minutes=15)
     end = datetime.timedelta(hours=15, minutes=30)
         
-    if day != "Saturday" or day != "Sunday":
+    if (day != "Saturday") and (day != "Sunday"):
         if start < time < end:
+            print("Time is True")
             return True
         else:
             return False
@@ -355,10 +356,8 @@ if __name__ == "__main__":
     print(Fore.MAGENTA + "Welcome to stock-game! Type `help` for help")
     if calc_se():
         print(Fore.GREEN + "Stock market is OPEN.")
-    elif not calc_se():
-        print(Fore.RED + "Stock market is CLOSED.")
     else:
-        print("\033[F")
+        print(Fore.RED + "Stock market is CLOSED.")
     while True:
         try:
             print(game())
