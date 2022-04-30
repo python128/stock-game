@@ -26,14 +26,13 @@ def calc_se():
     start = datetime.timedelta(hours=9, minutes=15)
     end = datetime.timedelta(hours=15, minutes=30)
         
-    if (day != "Saturday") and (day != "Sunday"):
+    if day == "Saturday" or day == "Sunday":
+        return False
+    else:
         if start < time < end:
-            print("Time is True")
             return True
         else:
             return False
-    else:
-        return False
     
 # Logs actions
 def log(msg):
