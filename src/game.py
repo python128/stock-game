@@ -41,13 +41,16 @@ def log(msg):
     return ""
     
 # Reads the log file
-def read_log():
+def read_log(full=False):
     with open("log.txt", "r") as logfile:
         reader = csv.reader(logfile)
         data = []
         for row in reader:
             data.append(row)
-        return data[1:][::-1] # [::-1] reverses the order
+        if full:
+            return data[1:][::-1]
+        else:
+            return data[1:][::-1][:10] # [::-1] reverses the order
         
 # Basic loan to start with
 def loan():
@@ -75,8 +78,10 @@ def help_msg():
          - "port": Shows your portfolio.
          - "buy <stock> <num of shares>": Buys <num of shares> <stock> from the stock market.
          - "sell <stock> <num of shares>": Sells <num of shares> from <stock> to the market.
+         - "sell --all": Sells all of your shares.
          - "loan": Gets you your first loan of ⏣ 5000 with no interest and no back pay.
-         - "log": Shows your logs, i.e. what all you bought/sold, at which time, at which rate, etc.
+         - "log": Shows your logs(only 10 newest), i.e. what all you bought/sold, at which time, at which rate, etc.
+         - "log --all": Shows all of your logs. Might take some time, and lots of space in your terminal.
          - "comp <stock>": Compares your stock with the real time market. Shows your losses or gains.
          - "comp --port": Compares your entire portfolio with current rates.
          - "help": Shows this help message.
@@ -123,6 +128,9 @@ def add_color(num):
     else:
         return ""
         
+def add_coin(num):
+    return f"⏣ {num}"
+        
 ###########################################
 ### Info from Internet(Google Finanace) ###
 ###########################################
@@ -142,7 +150,7 @@ def get_rate(stock):
         n = NSELive()
         q = n.stock_quote(stock.upper())
         data = q['priceInfo']['lastPrice']
-        return data
+        return float(data)
     except:
         return 0
         
@@ -183,7 +191,7 @@ def buy_shares(cash, stock, num):
             cash -= rate*num
             update_cash(cash)
             write_ports(new_list)
-            log("{},{},{},{},⏣ {},⏣ {},⏣ {}".format(get_time(),"Buy", stock, int(num), rate, num*rate, cash))
+            log("{},{},{},{},⏣ {},⏣ {},⏣ {},-".format(get_time(),"Buy", stock, int(num), rate, num*rate, cash))
             return ">> Bought {} shares of {} stock for ⏣ {} \nYou have ⏣ {} remaining.".format(int(num), stock, rate*num, cash)
         else:
             return ">> Alright, not buying it"
@@ -201,7 +209,8 @@ def sell_shares(cash, stock, num):
     new_list = []
 
     for val in data:
-        if val['stock'] == stock: idx = data.index(val)
+        if val['stock'] == stock: 
+            idx = data.index(val)
         if val['stock'] != stock: new_list.append(val)
         stocks.append(val['stock'])
     
@@ -219,16 +228,16 @@ def sell_shares(cash, stock, num):
             cash += rate*int(share_num)
             write_ports(new_list)
             update_cash(cash)
-            log("{},{},{},{},⏣ {},⏣ {},⏣ {}".format(get_time(),"Sell", stock, int(share_num), rate, share_num*rate, cash))
+            log("{},{},{},{},⏣ {},⏣ {},⏣ {},⏣ {}".format(get_time(),"Sell", stock, int(share_num), rate, share_num*rate, cash, add_color(float(share_num)*rate - float(share_num)*oldrate)))
             if (rate-oldrate)*share_num > 0:
-                pl = Fore.GREEN + "gained" # Profit/Loss
+                pl = "gained" # Profit/Loss
             elif (rate-oldrate)*share_num < 0:
-                pl = Fore.RED + "lost"
+                pl = "lost"
             elif (rate-oldrate)*share_num == 0:
                 pl = "lost/gained"
             else:
                 pl = ""
-            return "Sold {} share(s) of {} stock for ⏣ {}.\nYou {} ⏣ {}".format(int(share_num), stock, share_num*rate, pl, (rate-oldrate)*share_num)
+            return "Sold {} share(s) of {} stock for ⏣ {}.\nYou {} ⏣ {}\nYour balance is now ⏣ {cash}.".format(int(share_num), stock, share_num*rate, pl, add_color((rate-oldrate)*share_num))
         else:
             return "Ok, keeping it."
     elif stock not in stocks:
@@ -237,6 +246,29 @@ def sell_shares(cash, stock, num):
         return "You have only {} shares. You can't sell {} shares.".format(int(num), int(share_num))
     elif share_num < 0:
         return "You can't sell {} shares.".format(share_num)
+        
+def sell_all_shares(cash):
+    data = get_ports()
+    total_l = []
+    shares_l = []
+    oldcash = cash
+
+    for val in data:
+        total_l.append(val['amt'])
+        shares_l.append(val['shares'])
+        
+    total = sum(total_l)
+    shares = sum(shares_l)
+    cash += total    
+    
+    confirm = input("Are you sure you want to sell EVERYTHING in your portfolio?(y/n) ")
+    if confirm == "y":
+        update_cash(cash)
+        write_ports({})
+        log(f"{get_time()},Sell,Everything,{shares},-,{total},{cash},-")
+        return f"Sold {shares} shares, for a total of {total}.\nYour balance is now ⏣ {cash}."
+    else:
+        return "Ok!"
         
 ##########################################
 ###      Functions with portfolio      ###
@@ -285,14 +317,17 @@ def game():
     cash = get_cash()
     cmd = input("~>> " + Fore.CYAN)
     print(Fore.WHITE, end="\r")
+
     if "fs" in cmd:
         stock = cmd.replace("fs", "").strip()
         if get_data(stock):
             return get_data(stock)
         else:
             return "That stock is not present."
+
     elif "bal" in cmd:
         return "⏣ " + str(cash)
+
     elif "port" == list(cmd.split(" "))[0]:
         headers = ["Stock", "Avg Rate", "Shares", "Cost"]
         if port_data() != []:
@@ -300,6 +335,7 @@ def game():
         else:
             return "You have no shares yet! Buy some!"
         return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
+
     elif "comp --port" in cmd:
         headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "Profit/Loss(per share)", "Total Profit/Loss"]
         if port_data() != []:
@@ -318,35 +354,57 @@ def game():
         else:
             return "You have no shares yet! Buy some!"
         return tabulate(ftable, headers, tablefmt="fancy_grid", numalign="right") + f"\nTotal: {pl}"
+
     elif "buy" in cmd:
         try: 
             li = list(cmd.split(" "))
             return buy_shares(cash, li[1], li[2])
         except IndexError: return "Please provide 2 arguments: buy <stock> <num. of shares>"
-    elif "sell" in cmd:
+
+    elif "sell" == cmd.strip():
         try: 
             li = list(cmd.split(" "))
             return sell_shares(cash, li[1], li[2])
         except IndexError: return "Please provide 2 arguments: sell <stock> <num. of shares>"
-    elif "log" in cmd:
-        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance"]
+        
+    elif "sell --all" in cmd:
+        return sell_all_shares(cash)
+
+    elif "log" == cmd.strip():
+        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "Profit/Loss"]
         if read_log() != []:
             table = read_log()
         else:
             return "There is nothing in your logs! Do some activity, and you can see your logs."
         return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
+
+    elif "log --all" in cmd:
+        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "Profit/Loss"]
+        if read_log() != []:
+            if len(read_log(full=True)) > 30:
+                confirm = input("Are you sure? This will take up a lot of space, and time?(y/n) ")
+                if confirm == "y": table = read_log(full=True)
+                else: return "\033[F"
+        else:
+            return "There is nothing in your logs! Do some activity, and you can see your logs."
+        return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
+
     elif "loan" in cmd:
         return loan()
+
     elif "help" in cmd:
         return help_msg()
+
     elif "comp" in cmd:
         try:
             li = list(cmd.split(" "))
             return comp(li[1])
         except IndexError: return "Please provide 1 argument: comp <stock>"
+
     elif "exit" in cmd or "quit" in cmd:
         print("\033[F\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
         sys.exit(0)
+
     else:
         return "\033[F"
     
