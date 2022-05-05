@@ -48,6 +48,7 @@ Here are the commands.
 - "port": Shows your portfolio.
 - "buy <stock> <num of shares>": Buys <num of shares> <stock> from the stock market.
 - "sell <stock> <num of shares>": Sells <num of shares> from <stock> to the market.
+- "sell --all": Sells all of your shares.
 - "loan": Gets you your first loan of ⏣ 5000 with no interest and no back pay.
 - "log": Shows your logs, i.e. what all you bought/sold, at which time, at which rate, etc.
 - "comp <stock>": Compares your stock with the real time market. Shows your losses or gains.
