@@ -237,7 +237,7 @@ def sell_shares(cash, stock, num):
                 pl = "lost/gained"
             else:
                 pl = ""
-            return "Sold {} share(s) of {} stock for ⏣ {}.\nYou {} ⏣ {}\nYour balance is now ⏣ {cash}.".format(int(share_num), stock, share_num*rate, pl, add_color((rate-oldrate)*share_num))
+            return "Sold {} share(s) of {} stock for ⏣ {}.\nYou {} ⏣ {}\nYour balance is now ⏣ {}.".format(int(share_num), stock, share_num*rate, pl, add_color((rate-oldrate)*share_num), cash)
         else:
             return "Ok, keeping it."
     elif stock not in stocks:
@@ -249,24 +249,36 @@ def sell_shares(cash, stock, num):
         
 def sell_all_shares(cash):
     data = get_ports()
-    total_l = []
+    oldtotal_l = []
+    newrates_l = []
+    newtotal_l = []
     shares_l = []
+    stocks_l = []
     oldcash = cash
 
     for val in data:
-        total_l.append(val['amt'])
+        stocks_l.append(val['stock'])
+        oldtotal_l.append(val['amt'])
         shares_l.append(val['shares'])
         
-    total = sum(total_l)
-    shares = sum(shares_l)
-    cash += total    
+    for item in stocks_l:
+        newrates_l.append(get_rate(item))
+        
+    new_d = dict(zip(shares_l, newrates_l))
     
+    for k, v in new_d.items(): newtotal_l.append(k*v)
+    
+    oldtotal = sum(oldtotal_l)
+    newtotal = sum(newtotal_l)
+    shares = sum(shares_l)
+    cash += newtotal
+        
     confirm = input("Are you sure you want to sell EVERYTHING in your portfolio?(y/n) ")
     if confirm == "y":
         update_cash(cash)
         write_ports({})
-        log(f"{get_time()},Sell,Everything,{shares},-,{total},{cash},-")
-        return f"Sold {shares} shares, for a total of {total}.\nYour balance is now ⏣ {cash}."
+        log(f"{get_time()},Sell,Everything,{shares},-,{newtotal},{cash},{oldtotal-newtotal}")
+        return f"Sold {shares} shares, for a total of {newtotal}.\nYou gained/lost {add_color(oldtotal-newtotal)}.\nYour balance is now ⏣ {cash}."
     else:
         return "Ok!"
         
@@ -361,15 +373,15 @@ def game():
             return buy_shares(cash, li[1], li[2])
         except IndexError: return "Please provide 2 arguments: buy <stock> <num. of shares>"
 
-    elif "sell" == cmd.strip():
+    elif ["sell", "--all"] == list(cmd.split(" ")):
+        return sell_all_shares(cash)
+
+    elif "sell" == list(cmd.split(" "))[0]:
         try: 
             li = list(cmd.split(" "))
             return sell_shares(cash, li[1], li[2])
         except IndexError: return "Please provide 2 arguments: sell <stock> <num. of shares>"
         
-    elif "sell --all" in cmd:
-        return sell_all_shares(cash)
-
     elif "log" == cmd.strip():
         headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "Profit/Loss"]
         if read_log() != []:
@@ -380,11 +392,14 @@ def game():
 
     elif "log --all" in cmd:
         headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "Profit/Loss"]
+        table = []
         if read_log() != []:
             if len(read_log(full=True)) > 30:
                 confirm = input("Are you sure? This will take up a lot of space, and time?(y/n) ")
                 if confirm == "y": table = read_log(full=True)
                 else: return "\033[F"
+            else:
+                table = read_log(full=True)
         else:
             return "There is nothing in your logs! Do some activity, and you can see your logs."
         return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
