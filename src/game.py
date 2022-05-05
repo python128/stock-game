@@ -191,7 +191,7 @@ def buy_shares(cash, stock, num):
             cash -= rate*num
             update_cash(cash)
             write_ports(new_list)
-            log("{},{},{},{},⏣ {},⏣ {},⏣ {},-".format(get_time(),"Buy", stock, int(num), rate, num*rate, cash))
+            log("{},{},{},{},⏣ {},⏣ {},⏣ {},-".format(get_time(),"Buy", stock, int(num), rate, round(num*rate, 2), round(cash, 2)))
             return ">> Bought {} shares of {} stock for ⏣ {} \nYou have ⏣ {} remaining.".format(int(num), stock, rate*num, cash)
         else:
             return ">> Alright, not buying it"
@@ -228,7 +228,7 @@ def sell_shares(cash, stock, num):
             cash += rate*int(share_num)
             write_ports(new_list)
             update_cash(cash)
-            log("{},{},{},{},⏣ {},⏣ {},⏣ {},⏣ {}".format(get_time(),"Sell", stock, int(share_num), rate, share_num*rate, cash, add_color(float(share_num)*rate - float(share_num)*oldrate)))
+            log("{},{},{},{},⏣ {},⏣ {},⏣ {},⏣ {}".format(get_time(),"Sell", stock, int(share_num), round(rate, 2), round(share_num*rate, 2), round(cash, 2), add_color(round(float(share_num)*rate - float(share_num)*oldrate, 2))))
             if (rate-oldrate)*share_num > 0:
                 pl = "gained" # Profit/Loss
             elif (rate-oldrate)*share_num < 0:
@@ -248,37 +248,26 @@ def sell_shares(cash, stock, num):
         return "You can't sell {} shares.".format(share_num)
         
 def sell_all_shares(cash):
-    data = get_ports()
-    oldtotal_l = []
-    newrates_l = []
-    newtotal_l = []
+    oldcash = cash
+    data_ = get_ports()
     shares_l = []
     stocks_l = []
-    oldcash = cash
 
-    for val in data:
+    for val in data_:
         stocks_l.append(val['stock'])
-        oldtotal_l.append(val['amt'])
         shares_l.append(val['shares'])
-        
-    for item in stocks_l:
-        newrates_l.append(get_rate(item))
-        
-    new_d = dict(zip(shares_l, newrates_l))
+        data = dict(zip(stocks_l, shares_l))
     
-    for k, v in new_d.items(): newtotal_l.append(k*v)
-    
-    oldtotal = sum(oldtotal_l)
-    newtotal = sum(newtotal_l)
-    shares = sum(shares_l)
-    cash += newtotal
-        
     confirm = input("Are you sure you want to sell EVERYTHING in your portfolio?(y/n) ")
     if confirm == "y":
+        for stock, share in data.items():
+            rate = get_rate(stock)
+            cash += rate*share
+            log("{},{},{},{},⏣ {},⏣ {},⏣ {}, - ".format(get_time(),"Sell", stock, int(share), round(rate, 2), round(share*rate, 2), round(cash, 2)))
+            
         update_cash(cash)
         write_ports({})
-        log(f"{get_time()},Sell,Everything,{shares},-,{newtotal},{cash},{oldtotal-newtotal}")
-        return f"Sold {shares} shares, for a total of {newtotal}.\nYou gained/lost {add_color(oldtotal-newtotal)}.\nYour balance is now ⏣ {cash}."
+        return f"Sold:\n- {len(stocks_l)} stocks.\n- {int(sum(shares_l))} shares.\n- Earned ⏣ {cash - oldcash}.\n- Balance is now ⏣ {cash}."
     else:
         return "Ok!"
         
@@ -395,7 +384,7 @@ def game():
         table = []
         if read_log() != []:
             if len(read_log(full=True)) > 30:
-                confirm = input("Are you sure? This will take up a lot of space, and time?(y/n) ")
+                confirm = input("Are you sure? This will take up a lot of space, and time.(y/n) ")
                 if confirm == "y": table = read_log(full=True)
                 else: return "\033[F"
             else:
