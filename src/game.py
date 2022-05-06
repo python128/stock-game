@@ -2,6 +2,7 @@
 
 # Imports
 from jugaad_data.nse import NSELive # To get data
+import readline
 from colorama import Fore, init
 from bs4 import BeautifulSoup as bs # To parse data
 import csv # Some help with csv formats
@@ -354,7 +355,7 @@ def get_cash():
     with open("cash.txt", "r") as file:
         try: return round(float(file.read()), 2)
         except ValueError: update_cash(0.0)
-        
+
 ###########################################
 ###            Actual Game              ###
 ###########################################
@@ -434,12 +435,12 @@ def game():
         except IndexError: return "Please provide 1 argument: comp <stock>"
 
     elif "exit" in cmd or "quit" in cmd:
-        print("\033[F\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
+        print("\033[2K\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
         sys.exit(0)
 
     else:
         return "\033[F"
-    
+
     
 if __name__ == "__main__":
     print(Fore.MAGENTA + "Welcome to stock-game! Type `help` for help")
@@ -449,5 +450,5 @@ if __name__ == "__main__":
         try:
             print(game())
         except KeyboardInterrupt:
-            print("\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
+            print("\033[2K\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
             sys.exit(0)
