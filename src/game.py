@@ -97,7 +97,7 @@ def help_msg():
          You have to go to https://google.com/finance to check fluctuations, good stocks, etc. 
          My code only gives the rate as of now.
     
-         Transaction tax is 1% of your transaction, which will automatically be deducted.
+         Transaction cost(Txn Cost) is 1% of your transaction, which will automatically be deducted.
         
          One can easily edit the files to show their portfolios as more, and make their cash extremely high.
          I know this, and if you want you can do this. However, the game is meant for practice, not fooling.
@@ -133,7 +133,7 @@ def add_color(num):
 def deduct_tax(amt, println=True):
     tax = round(amt * 1/100, 2)
     if println:
-        print(Fore.YELLOW + f"=== A transaction amount of {tax} has been deducted from your account." + Fore.RESET)
+        print(Fore.YELLOW + f"=== A transaction cost of {tax} has been deducted from your account." + Fore.RESET)
     return tax
 
 ###########################################
@@ -183,7 +183,7 @@ def buy_shares(cash, stock, num):
     if num <= 0: return "You can't buy {} shares!".format(num)
 
     if cash - rate*num > 0:
-        confirm = input("   Stock: {}\n   Shares: {}\n   Rate: {}\n   Price: {}\n   Tax: {}\n   Do you want to buy this?(y/n) ".format(stock, int(num), rate, rate*num, deduct_tax(rate*num, println=False)))
+        confirm = input("   Stock: {}\n   Shares: {}\n   Rate: {}\n   Price: {}\n   Txn Cost: {}\n   Do you want to buy this?(y/n) ".format(stock, int(num), rate, rate*num, deduct_tax(rate*num, println=False)))
         if confirm == "y":
             if stock in stocks:
                 data[idx]['shares'] += num
@@ -227,7 +227,7 @@ def sell_shares(cash, stock, num):
     except UnboundLocalError: oldrate = 0
 
     if stock in stocks and share_num <= num and share_num > 0:
-        confirm = input("   Stock: {}\n   Shares: {}\n   Rate: {}\n   Price: {}\n   Tax: {}\n   Do you want to sell this?(y/n) ".format(stock, int(share_num), rate, rate*share_num, deduct_tax(rate*share_num, println=False)))
+        confirm = input("   Stock: {}\n   Shares: {}\n   Rate: {}\n   Price: {}\n   Txn Cost: {}\n   Do you want to sell this?(y/n) ".format(stock, int(share_num), rate, rate*share_num, deduct_tax(rate*share_num, println=False)))
         if confirm == "y":
             if share_num < num:
                 data[idx]['shares'] -= int(share_num)
@@ -349,7 +349,7 @@ def game():
         return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
 
     elif "comp --port" in cmd:
-        headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "P&L per share", "Tax", "Total P&L"]
+        headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "P&L per share", "Txn Cost", "Total P&L"]
         if port_data() != []:
             table = port_data()
             ftable = []
