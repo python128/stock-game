@@ -96,6 +96,8 @@ def help_msg():
          Essentially, this is like a simulation, with all actual prices. 
          You have to go to https://google.com/finance to check fluctuations, good stocks, etc. 
          My code only gives the rate as of now.
+    
+         Transaction tax is 1% of your transaction, which will automatically be deducted.
         
          One can easily edit the files to show their portfolios as more, and make their cash extremely high.
          I know this, and if you want you can do this. However, the game is meant for practice, not fooling.
@@ -127,10 +129,13 @@ def add_color(num):
         return f"{num}"
     else:
         return ""
-        
-def add_coin(num):
-    return f"⏣ {num}"
-        
+
+def deduct_tax(cash, amt):
+    tax = round(amt * 1/100, 2)
+    cash -= tax
+    print(Fore.YELLOW + f"=== A transaction amount of {tax} has been deducted from your account.\n=== Your balance is now {cash}." + Fore.RESET)
+    return tax
+
 ###########################################
 ### Info from Internet(Google Finanace) ###
 ###########################################
@@ -189,6 +194,8 @@ def buy_shares(cash, stock, num):
                 new_dict = {"stock":stock, "rate":rate, "shares":int(num), "amt":rate*num}
                 new_list.append(new_dict)
             cash -= rate*num
+            amt = deduct_tax(cash, rate*num)
+            cash -= amt
             update_cash(cash)
             write_ports(new_list)
             log("{},{},{},{},⏣ {},⏣ {},⏣ {},-".format(get_time(),"Buy", stock, int(num), rate, round(num*rate, 2), round(cash, 2)))
@@ -226,6 +233,8 @@ def sell_shares(cash, stock, num):
                 data[idx]['shares'] -= int(share_num)
                 new_list.append(data[idx])
             cash += rate*int(share_num)
+            amt = deduct_tax(cash, rate*int(share_num))
+            cash -= amt
             write_ports(new_list)
             update_cash(cash)
             log("{},{},{},{},⏣ {},⏣ {},⏣ {},⏣ {}".format(get_time(),"Sell", stock, int(share_num), round(rate, 2), round(share_num*rate, 2), round(cash, 2), add_color(round(float(share_num)*rate - float(share_num)*oldrate, 2))))
@@ -263,6 +272,8 @@ def sell_all_shares(cash):
         for stock, share in data.items():
             rate = get_rate(stock)
             cash += rate*share
+            amt = deduct_tax(cash, rate*share)
+            cash -= amt
             log("{},{},{},{},⏣ {},⏣ {},⏣ {}, - ".format(get_time(),"Sell", stock, int(share), round(rate, 2), round(share*rate, 2), round(cash, 2)))
             
         update_cash(cash)
@@ -415,10 +426,8 @@ def game():
     
 if __name__ == "__main__":
     print(Fore.MAGENTA + "Welcome to stock-game! Type `help` for help")
-    if calc_se():
-        print(Fore.GREEN + "Stock market is OPEN.")
-    else:
-        print(Fore.RED + "Stock market is CLOSED.")
+    if calc_se(): print(Fore.GREEN + "Stock market is OPEN.")
+    else: print(Fore.RED + "Stock market is CLOSED.")
     while True:
         try:
             print(game())
