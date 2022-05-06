@@ -130,10 +130,10 @@ def add_color(num):
     else:
         return ""
 
-def deduct_tax(cash, amt):
+def deduct_tax(amt, println=True):
     tax = round(amt * 1/100, 2)
-    cash -= tax
-    print(Fore.YELLOW + f"=== A transaction amount of {tax} has been deducted from your account.\n=== Your balance is now {cash}." + Fore.RESET)
+    if println:
+        print(Fore.YELLOW + f"=== A transaction amount of {tax} has been deducted from your account." + Fore.RESET)
     return tax
 
 ###########################################
@@ -183,7 +183,7 @@ def buy_shares(cash, stock, num):
     if num <= 0: return "You can't buy {} shares!".format(num)
 
     if cash - rate*num > 0:
-        confirm = input(">> Are you sure you want to buy {} shares of {} for ⏣ {}[⏣ {} per share]?(y/n) ".format(int(num), stock, rate*num, rate))
+        confirm = input("   Stock: {}\n   Shares: {}\n   Rate: {}\n   Price: {}\n   Tax: {}\n   Do you want to buy this?(y/n) ".format(stock, int(num), rate, rate*num, deduct_tax(rate*num, println=False)))
         if confirm == "y":
             if stock in stocks:
                 data[idx]['shares'] += num
@@ -194,7 +194,7 @@ def buy_shares(cash, stock, num):
                 new_dict = {"stock":stock, "rate":rate, "shares":int(num), "amt":rate*num}
                 new_list.append(new_dict)
             cash -= rate*num
-            amt = deduct_tax(cash, rate*num)
+            amt = deduct_tax(rate*num)
             cash -= amt
             update_cash(cash)
             write_ports(new_list)
@@ -227,13 +227,13 @@ def sell_shares(cash, stock, num):
     except UnboundLocalError: oldrate = 0
 
     if stock in stocks and share_num <= num and share_num > 0:
-        confirm = input(">> Are you sure you want to sell {} share(s) of {} stock for ⏣ {}[⏣ {} per share]?(y/n) ".format(int(share_num), stock, rate*share_num, rate))
+        confirm = input("   Stock: {}\n   Shares: {}\n   Rate: {}\n   Price: {}\n   Tax: {}\n   Do you want to sell this?(y/n) ".format(stock, int(share_num), rate, rate*share_num, deduct_tax(rate*share_num, println=False)))
         if confirm == "y":
             if share_num < num:
                 data[idx]['shares'] -= int(share_num)
                 new_list.append(data[idx])
             cash += rate*int(share_num)
-            amt = deduct_tax(cash, rate*int(share_num))
+            amt = deduct_tax(rate*int(share_num))
             cash -= amt
             write_ports(new_list)
             update_cash(cash)
@@ -272,7 +272,7 @@ def sell_all_shares(cash):
         for stock, share in data.items():
             rate = get_rate(stock)
             cash += rate*share
-            amt = deduct_tax(cash, rate*share)
+            amt = deduct_tax(rate*share)
             cash -= amt
             log("{},{},{},{},⏣ {},⏣ {},⏣ {}, - ".format(get_time(),"Sell", stock, int(share), round(rate, 2), round(share*rate, 2), round(cash, 2)))
             
@@ -349,19 +349,23 @@ def game():
         return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
 
     elif "comp --port" in cmd:
-        headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "Profit/Loss(per share)", "Total Profit/Loss"]
+        headers = ["Stock", "Avg Rate", "Shares", "Cost", "Current Rate", "P&L per share", "Tax", "Total P&L"]
         if port_data() != []:
             table = port_data()
             ftable = []
             adds = []
             for val in table:
                 val.append(get_rate(val[0]))
+
                 profs = float(val[4]) - float(val[1])
+                tax = deduct_tax(float(val[3]), println=False) * -2
+                totalprof = float(val[2]) * float(profs) + tax
+
                 val.append(add_color(profs))
-                totalprof = float(val[2]) * float(profs)
+                val.append(add_color(tax))
                 val.append(add_color(totalprof))
                 ftable.append(val)
-                adds.append(float(totalprof))
+                adds.append(float(totalprof)); adds.append(tax)
             pl = add_color(round(sum(adds), 2))
         else:
             return "You have no shares yet! Buy some!"
@@ -383,7 +387,7 @@ def game():
         except IndexError: return "Please provide 2 arguments: sell <stock> <num. of shares>"
         
     elif "log" == cmd.strip():
-        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "Profit/Loss"]
+        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "P&L"]
         if read_log() != []:
             table = read_log()
         else:
@@ -391,7 +395,7 @@ def game():
         return tabulate(table, headers, tablefmt="fancy_grid", numalign="right")
 
     elif "log --all" in cmd:
-        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "Profit/Loss"]
+        headers = ["Date/Time", "Action", "Stock", "Shares", "Rate", "Price", "Balance", "P&L"]
         table = []
         if read_log() != []:
             if len(read_log(full=True)) > 30:
