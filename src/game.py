@@ -2,6 +2,7 @@
 
 # Imports
 from jugaad_data.nse import NSELive # To get data
+import time, random
 import readline
 from colorama import Fore, init
 from bs4 import BeautifulSoup as bs # To parse data
@@ -85,6 +86,7 @@ def help_msg():
          - "log --all": Shows all of your logs. Might take some time, and lots of space in your terminal.
          - "comp <stock>": Compares your stock with the real time market. Shows your losses or gains.
          - "comp --port": Compares your entire portfolio with current rates.
+         - "work": A small minigame to earn some money! You can run this command every 10 minutes.
          - "help": Shows this help message.
          - "exit": Exits the game cleanly; ^C also works.
          - "quit": Same as 'exit'
@@ -345,22 +347,66 @@ def write_ports(item):
 ###        Functions with Cash          ###
 ###########################################
 # Updates the cash
-def update_cash(new_val):
+def update_cash(new_val, time=False):
     with open("cash.txt", "w") as file:
-        file.write(str(new_val))
+        if time:
+            work_time = dt.now().strftime("%d/%m/%Y %H:%M:%S")
+            file.write(f"{new_val}\n{work_time}")
+        else:
+            work_time = get_cash(works=True)
+            file.write(f"{new_val}\n{work_time}")
     return ""
 
 # Gets the cash
-def get_cash():
+def get_cash(works=False):
     with open("cash.txt", "r") as file:
-        try: return round(float(file.read()), 2)
-        except ValueError: update_cash(0.0)
+        if works:
+            return file.read().split("\n")[1]
+        else:
+            try: return round(float(file.read().split("\n")[0]), 2)
+            except ValueError: update_cash(0.0)
+        
+
+def work(cash):
+    with open("text.txt", "r") as file:
+        text = file.read().strip().split("\n")
+    
+    print("\033[4mWork\033[0m: Type the following sentences and hit return!")
+    t = 3
+    while t > 0:
+        print(t, end=""); time.sleep(1); print("\r", end="\r")
+        t -= 1
+    
+    correct = 0
+    fails = 0
+    for i in range(3):
+        choice = random.choice(text)
+        print(choice)
+        inp = input(Fore.YELLOW + f"{i+1}>> " + Fore.RESET)
+        if inp == choice:
+            print(Fore.GREEN + "Nice! You typed perfectly!\n" + Fore.RESET)
+            correct += 1
+        else:
+            print(Fore.RED + "Oh no! You made an error!\n" + Fore.RESET)
+            fails += 1
+    
+    earned = correct*100 + fails*25
+    cash += earned
+    update_cash(cash, time=True)
+    
+    if correct == 3: praise = "Great! 3/3!"
+    elif correct == 2: praise = "Good job! 2/3!"
+    elif correct == 1: praise = "Not bad... 1/3"
+    elif correct == 0: praise = "Uh.. You didn't do any one correctly. :(\nBetter luck next time!\nHint: Pay attention to capital letters and punctuation."
+    else: praise = ""
+    return f"{praise}\nSuccesses: {correct} (* ⏣ 100)\nFails: {fails} (* ⏣ 25)\nMoney earned: ⏣ {earned}\nBalance: ⏣ {cash}"
 
 ###########################################
 ###            Actual Game              ###
 ###########################################
 def game():
     cash = get_cash()
+    work_time = get_cash(works=True)
     cmd = input("~>> " + Fore.CYAN)
     print(Fore.WHITE, end="\r")
 
@@ -437,6 +483,15 @@ def game():
     elif "exit" in cmd or "quit" in cmd:
         print("\033[2K\r" + Fore.MAGENTA + "Bye! Don't forget to see your stocks soon!")
         sys.exit(0)
+
+    elif "work" in cmd:
+        wait_time = dt.strptime(work_time, "%d/%m/%Y %H:%M:%S") + datetime.timedelta(minutes=10)
+        if wait_time <= dt.now():
+            return work(cash)
+        else:
+            min = str(wait_time-dt.now()).split('.')[0].split(':')[1].lstrip("0")
+            sec = str(wait_time-dt.now()).split('.')[0].split(':')[2].lstrip("0")
+            return f"You need to wait for {min} minutes {sec} seconds more to work again..."
 
     else:
         return "\033[F"
