@@ -347,25 +347,29 @@ def write_ports(item):
 ###        Functions with Cash          ###
 ###########################################
 # Updates the cash
-def update_cash(new_val, time=False):
+def update_cash(new_val):
     with open("cash.txt", "w") as file:
-        if time:
-            work_time = dt.now().strftime("%d/%m/%Y %H:%M:%S")
-            file.write(f"{new_val}\n{work_time}")
-        else:
-            work_time = get_cash(works=True)
-            file.write(f"{new_val}\n{work_time}")
+        file.write(f"{new_val}")
     return ""
 
 # Gets the cash
-def get_cash(works=False):
+def get_cash():
     with open("cash.txt", "r") as file:
-        if works:
-            return file.read().split("\n")[1]
-        else:
-            try: return round(float(file.read().split("\n")[0]), 2)
-            except ValueError: update_cash(0.0)
-        
+        try: return round(float(file.read()), 2)
+        except ValueError: update_cash(0.0)
+
+# Updates the cash
+def update_work():
+    with open("work.txt", "w") as file:
+        newtime = str(dt.now().strftime("%d/%m/%Y %H:%M:%S"))
+        file.write(f"{newtime}")
+    return ""
+
+# Gets the cash
+def get_work():
+    with open("work.txt", "r") as file:
+        try: return file.read()
+        except: update_work(); return file.read()
 
 def work(cash):
     with open("text.txt", "r") as file:
@@ -392,7 +396,8 @@ def work(cash):
     
     earned = correct*100 + fails*25
     cash += earned
-    update_cash(cash, time=True)
+    update_cash(cash)
+    update_work()
     
     if correct == 3: praise = "Great! 3/3!"
     elif correct == 2: praise = "Good job! 2/3!"
@@ -406,7 +411,7 @@ def work(cash):
 ###########################################
 def game():
     cash = get_cash()
-    work_time = get_cash(works=True)
+    work_time = get_work()
     cmd = input("~>> " + Fore.CYAN)
     print(Fore.WHITE, end="\r")
 
@@ -485,13 +490,15 @@ def game():
         sys.exit(0)
 
     elif "work" in cmd:
-        wait_time = dt.strptime(work_time, "%d/%m/%Y %H:%M:%S") + datetime.timedelta(minutes=10)
+        wait_time = dt.strptime(work_time, "%d/%m/%Y %H:%M:%S") + datetime.timedelta(minutes=1)
         if wait_time <= dt.now():
             return work(cash)
         else:
             min = str(wait_time-dt.now()).split('.')[0].split(':')[1].lstrip("0")
             sec = str(wait_time-dt.now()).split('.')[0].split(':')[2].lstrip("0")
-            return f"You need to wait for {min} minutes {sec} seconds more to work again..."
+            if min != "": min_var = " minutes "
+            else: min_var = ""
+            return f"You need to wait for {min}{min_var}{sec} seconds more to work again..."
 
     else:
         return "\033[F"
